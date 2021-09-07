@@ -32,8 +32,8 @@
                             <form action="{% url 'cart:cart_add' product.id %}" method="post">
                                 {{ item.update_quantity_form.quantity }}
                                 {{ item.update_quantity_form.update }}
-                                <input type="submit" value="Update">
                                 {% csrf_token %}
+                                <input type="submit" value="Update">
                             </form>
                         </td>
                         <td>
@@ -52,6 +52,6 @@
     </table>
     <p class="text-right">
         <a href="{% url 'main:product_list' %}" class="button light">Continue shopping</a>
-        <a href="#" class="button">Checkout</a>
+        <a href="{% url 'orders:order_create' %}" class="button">Checkout</a>
     </p>
 {% endblock content %}
