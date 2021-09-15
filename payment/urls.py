@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import payment_canceled, payment_done, payment_process
 
-app_label = "payment"
+app_name = "payment"
 
 urlpatterns = [
     path("process/", payment_process, name="process"),
