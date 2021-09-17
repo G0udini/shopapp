@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-17 12:42+0300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2021-09-17 14:07+0300\n"
+"PO-Revision-Date: 2021-09-17 10:55+0000\n"
+"Last-Translator:   <>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -19,6 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
 "%100>=11 && n%100<=14)? 2 : 3);\n"
+"X-Translated-Using: django-rosetta 0.9.7\n"
 
 #: orders/models.py:10
 msgid "first name"
@@ -113,16 +114,20 @@ msgstr ""
 
 #: orders/templates/orders/order/pdf.html:28
 msgid "Quantity"
-msgstr ""
+msgstr "Количество"
 
 #: orders/templates/orders/order/pdf.html:29
 msgid "Cost"
-msgstr ""
+msgstr "Цена"
 
 #: orders/templates/orders/order/pdf.html:48
 msgid "Paid"
-msgstr ""
+msgstr "Оплачено"
 
 #: orders/templates/orders/order/pdf.html:48
 msgid "Pending payment"
+msgstr "Еще не оплачено"
+
+#: orders/urls.py:10
+msgid "create/"
 msgstr ""
