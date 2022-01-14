@@ -1,9 +1,8 @@
-from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
-from django.views.generic.list import ListView
+from django.shortcuts import get_object_or_404
+from django.views.generic.detail import DetailView
 from django.views.generic.base import TemplateView
-from .models import Category, Product
 from cart.forms import CartAddProductForm
+from .models import Category, Product
 from .recommender import Recommender
 
 
@@ -12,7 +11,7 @@ class ProductList(TemplateView):
 
     def get_queryset(self, **kwargs):
         products = Product.objects.filter(available=True)
-        category = kwargs.get("category", None)
+        category = kwargs.get("category")
         if category:
             products = products.filter(category=category)
         return products
@@ -20,7 +19,7 @@ class ProductList(TemplateView):
     def get_context_data(self, **kwargs):
         categories = Category.objects.all()
         return {
-            "category": kwargs.get("category", None),
+            "category": kwargs.get("category"),
             "categories": categories,
             "products": self.queryset,
         }
@@ -35,44 +34,17 @@ class ProductList(TemplateView):
         return self.render_to_response(context)
 
 
-# def product_list(request, category_slug=None):
-#     category = None
-#     categories = Category.objects.all()
-#     products = Product.objects.filter(available=True)
-#     if category_slug:
-#         language = request.LANGUAGE_CODE
-#         category = get_object_or_404(
-#             Category,
-#             translations__language_code=language,
-#             translations__slug=category_slug,
-#         )
-#         products = products.filter(category=category)
-#     context = {
-#         "categories": categories,
-#         "products": products,
-#         "category": category,
-#     }
-#     return render(request, "main/product/list.html", context)
+class ProductDetail(DetailView):
+    template_name = "main/product/detail.html"
+    queryset = Product.objects.filter(available=True)
+    query_pk_and_slug = True
+    context_object_name = "product"
 
-
-def product_detail(request, id, slug):
-    language = request.LANGUAGE_CODE
-    product = get_object_or_404(
-        Product,
-        id=id,
-        translations__language_code=language,
-        translations__slug=slug,
-        available=True,
-    )
-    cart_product_form = CartAddProductForm()
-    r = Recommender()
-    recommended_products = r.suggest_products_for([product], 4)
-    return render(
-        request,
-        "main/product/detail.html",
-        {
-            "product": product,
-            "cart_product_form": cart_product_form,
-            "recommended_products": recommended_products,
-        },
-    )
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        r = Recommender()
+        context["cart_product_form"] = CartAddProductForm()
+        context["recommended_products"] = r.suggest_products_for(
+            [kwargs.get("object")], 4
+        )
+        return context
