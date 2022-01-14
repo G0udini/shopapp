@@ -1,6 +1,8 @@
-from django.utils.translation import gettext_lazy as _
 import os
+import socket
 from pathlib import Path
+from braintree import Configuration, Environment
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,10 +15,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG")
 
 ALLOWED_HOSTS = []
 
+# Django debug toolbar settings
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+if DEBUG:
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
 
 # Application definition
 
@@ -27,14 +38,16 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # custom apps
     "main.apps.MainConfig",
     "cart.apps.CartConfig",
     "orders.apps.OrdersConfig",
     "payment.apps.PaymentConfig",
     "coupons.apps.CouponsConfig",
-    "rosetta",
-    "parler",
+    # 3rd apps
+    # "parler",
     "localflavor",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -61,7 +74,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "cart.context_processors.cart",  # custom context processor
+                # custom context processor
+                "cart.context_processors.cart",
             ],
         },
     },
@@ -103,14 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = "en"
-
-LANGUAGES = (
-    ("en", _("English")),
-    ("ru", _("Russian")),
-)
-
-LOCALE_PATHS = (os.path.join(BASE_DIR, "locale/"),)
+LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
 
@@ -120,32 +127,21 @@ USE_L10N = True
 
 USE_TZ = True
 
-PARLER_LANGUAGES = {
-    None: (
-        {"code": "en"},
-        {"code": "ru"},
-    ),
-    "default": {
-        "fallback": "en",
-        "hide_untranslated": False,
-    },
-}
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 # Default media files
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Default session cart
 
@@ -161,8 +157,6 @@ BRAINTREE_MERCHANT_ID = os.getenv("BRAINTREE_MERCHANT_ID")
 BRAINTREE_PUBLIC_KEY = os.getenv("BRAINTREE_PUBLIC_KEY")
 BRAINTREE_PRIVATE_KEY = os.getenv("BRAINTREE_PRIVATE_KEY")
 
-from braintree import Configuration, Environment
-
 Configuration.configure(
     Environment.Sandbox,
     BRAINTREE_MERCHANT_ID,
@@ -172,6 +166,6 @@ Configuration.configure(
 
 # Redis settings
 
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6379
-REDIS_DB = 1
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_DB = os.getenv("REDIS_DB")
