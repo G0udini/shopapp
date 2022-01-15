@@ -1,21 +1,21 @@
 {% extends 'main/base.html' %}
 {% load static %}
-{% load i18n %}
+{% load thumbnail %}
 
 {% block title %}
     {% if category %}
         {{ category.name }}
     {% else %}
-        {% trans 'Products' %}
+        Products
     {% endif %}
 {% endblock title %}
 
 {% block content %}
     <div id="sidebar">
-        <h3>{% trans 'Categories' %}</h3>
+        <h3>Categories</h3>
         <ul>
             <li {% if not category %} class="selected"{% endif %}>
-                <a href="{% url 'main:product_list' %}">{% trans 'All' %}</a>
+                <a href="{% url 'main:product_list' %}">All</a>
             </li>
             {% for c in categories %}
             <li {% if c.slug == category.slug %} class="selected"{% endif %}>
@@ -25,14 +25,23 @@
         </ul>
     </div>
     <div id="main" class="product-list">
-        <h1>{% if category %}{{ category.name }}{% else %}Products{% endif %}</h1>
+        <h1>{% if category %}
+                {{ category.name }}
+            {% else %}
+                Products
+            {% endif %}</h1>
         {% for product in products %}
             <div class="item">
                 <a href="{{ product.get_absolute_url }}">
-                    <img src="{% if product.image %}{{ product.image.url }}
-                    {% else %}{% static 'img/no_image.png' %}{% endif %}">
+                    {% if product.image %}
+                        {% thumbnail product.image "300x300" crop="center" as im %}
+                            <img src="{{ im.url }}">
+                        {% endthumbnail %}
+                    {% else %}
+                            <img src="{% static 'img/no_image.png' %}">
+                    {% endif %}
+                    {{ product.name }}
                 </a>
-                <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
                 <br>
                 $ {{ product.price }}
             </div>

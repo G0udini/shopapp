@@ -3,8 +3,8 @@ from django.urls import reverse
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=200, db_index=True)
-    slug = models.SlugField(max_length=200, db_index=True, unique=True)
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
 
     class Meta:
         ordering = ["name"]
@@ -19,8 +19,8 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=200, db_index=True)
-    slug = models.SlugField(max_length=200, db_index=True)
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to="products/%Y/%m/%d", blank=True)
     category = models.ForeignKey(

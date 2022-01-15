@@ -9,6 +9,7 @@ urlpatterns = [
     path("orders/", include("orders.urls", namespace="orders")),
     path("payment/", include("payment.urls", namespace="payment")),
     path("coupons/", include("coupons.urls", namespace="coupons")),
+    path("__debug__/", include("debug_toolbar.urls")),
     path("", include("main.urls", namespace="main")),
 ]
 if settings.DEBUG:
