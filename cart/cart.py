@@ -7,7 +7,10 @@ from coupons.models import Coupon
 class Cart:
     def __init__(self, request):
         self.session = request.session
-        self.cart = self.session.get(settings.CART_SESSION_ID, {})
+        cart = self.session.get(settings.CART_SESSION_ID)
+        if not cart:
+            cart = self.session[settings.CART_SESSION_ID] = {}
+        self.cart = cart
         self.coupon_id = self.session.get("coupon_id")
 
     def add(self, product, quantity=1, update_quantity=False):
@@ -54,9 +57,7 @@ class Cart:
 
     @property
     def coupon(self):
-        if self.coupon_id:
-            return Coupon.objects.get(id=self.coupon_id)
-        return None
+        return Coupon.objects.get(id=self.coupon_id) if self.coupon_id else None
 
     def get_discount(self):
         if self.coupon:

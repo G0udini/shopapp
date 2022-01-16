@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # "parler",
     "localflavor",
     "debug_toolbar",
+    "sorl.thumbnail",
 ]
 
 MIDDLEWARE = [

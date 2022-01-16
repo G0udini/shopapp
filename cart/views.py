@@ -1,46 +1,55 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.http import require_POST
+from django.views import View
+from django.views.generic import TemplateView
 from main.models import Product
+from main.recommender import Recommender
+from coupons.forms import CouponApplyForm
 from .cart import Cart
 from .forms import CartAddProductForm
-from coupons.forms import CouponApplyForm
-from main.recommender import Recommender
 
 
-@require_POST
-def cart_add(request, product_id):
-    cart = Cart(request)
-    product = get_object_or_404(Product, id=product_id)
-    form = CartAddProductForm(request.POST)
-    if form.is_valid():
-        cd = form.cleaned_data
-        cart.add(product=product, quantity=cd["quantity"], update_quantity=cd["update"])
-    return redirect("cart:cart_detail")
+class CartAdd(View):
+    def post(self, request, product_id):
+        cart = Cart(request)
+        product = get_object_or_404(Product, id=product_id)
+        form = CartAddProductForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            cart.add(product, cd["quantity"], cd["update"])
+        return redirect("cart:cart_detail")
 
 
-def cart_remove(request, product_id):
-    cart = Cart(request)
-    product = get_object_or_404(Product, id=product_id)
-    cart.remove(product)
-    return redirect("cart:cart_detail")
+class CartDelete(View):
+    def post(request, product_id):
+        cart = Cart(request)
+        product = get_object_or_404(Product, id=product_id)
+        cart.remove(product)
+        return redirect("cart:cart_detail")
 
 
-def cart_detail(request):
-    cart = Cart(request)
-    for item in cart:
-        item["update_quantity_form"] = CartAddProductForm(
-            initial={"quantity": item["quantity"], "update": True}
-        )
-    coupon_apply_form = CouponApplyForm()
+class CartDetail(TemplateView):
 
-    r = Recommender()
-    cart_products = [item["product"] for item in cart]
-    recommended_products = r.suggest_products_for(cart_products, max_results=4)
-    return render(
-        request,
-        "cart/detail.html",
-        {
-            "coupon_apply_form": coupon_apply_form,
-            "recommended_products": recommended_products,
-        },
-    )
+    template_name = "cart/detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["coupon_apply_form"] = CouponApplyForm()
+        context["rcommended_products"] = kwargs.get("recommended_products")
+        return context
+
+    def get(self, request, *args, **kwargs):
+        cart = Cart(request)
+        for item in cart:
+            item["update_quantity_form"] = CartAddProductForm(
+                initial={"quantity": item["quantity"], "update": True}
+            )
+        print(request.session.get("cart"))
+        cart.generete_cart()
+        print(request.session.get("cart"))
+        # r = Recommender()
+        # cart_products = [item["product"] for item in cart]
+        # recommended_products = r.suggest_products_for(cart_products, max_results=4)
+        recommended_products = None
+        # self.context = self.get_context_data(recommended_products=recommended_products)
+        kwargs["recommended_products"] = None
+        return super().get(self, request, *args, **kwargs)
