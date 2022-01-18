@@ -1,20 +1,30 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse
 from django.conf import settings
 from django.http import HttpResponse
 from django.template.loader import render_to_string
+from django.views import View
+from cart.cart import Cart
 from .models import OrderItem, Order
 from .forms import OrderCreateForm
-from cart.cart import Cart
 from .tasks import order_created
 
 import weasyprint
 
 
-def order_create(request):
-    cart = Cart(request)
-    if request.method == "POST":
+class OrderCreate(View):
+
+    template_name = "orders/order/create.html"
+
+    def get(self, request, *args, **kwargs):
+        form = OrderCreateForm()
+        context = {"form": form}
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        cart = Cart(request)
+        cart.generete_cart()
         form = OrderCreateForm(request.POST)
         if form.is_valid():
             order = form.save(commit=False)
@@ -22,35 +32,45 @@ def order_create(request):
                 order.coupon = cart.coupon
                 order.discount = cart.coupon.discount
             order.save()
-            for item in cart:
-                OrderItem.objects.create(
+            order_items = [
+                OrderItem(
                     order=order,
                     product=item["product"],
                     price=item["price"],
                     quantity=item["quantity"],
                 )
+                for item in cart
+            ]
+            OrderItem.objects.bulk_create(order_items)
             cart.clear()
             order_created.delay(order.id)
             request.session["order_id"] = order.id
             return redirect(reverse("payment:process"))
-    else:
-        form = OrderCreateForm()
-    return render(request, "orders/order/create.html", {"form": form})
+        else:
+            return redirect("orders:order_create")
 
 
-@staff_member_required
-def admin_order_detail(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    return render(request, "admin/orders/order/detail.html", {"order": order})
+class AdminOrderDetail(PermissionRequiredMixin, View):
+    permission_required = "is_staff"
+    template_name = "admin/orders/order/detail.html"
+
+    def get(self, request, order_id, *args, **kwargs):
+        order = get_object_or_404(
+            Order.objects.prefetch_related("items", "items__product"),
+            id=order_id,
+        )
+        return render(request, self.template_name, {"order": order})
 
 
-@staff_member_required
-def admin_order_pdf(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    html = render_to_string("orders/order/pdf.html", {"order": order})
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f"filename='order_{order.id}.pdf'"
-    weasyprint.HTML(string=html).write_pdf(
-        response, stylesheets=[weasyprint.CSS(settings.STATIC_ROOT + "css/pdf.css")]
-    )
-    return response
+class AdminOrderPDF(PermissionRequiredMixin, View):
+    permission_required = "is_staff"
+
+    def get(self, request, order_id, *args, **kwargs):
+        order = get_object_or_404(Order, id=order_id)
+        html = render_to_string("orders/order/pdf.html", {"order": order})
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = f"filename='order_{order.id}.pdf'"
+        weasyprint.HTML(string=html).write_pdf(
+            response, stylesheets=[weasyprint.CSS(settings.PDF_ROOT)]
+        )
+        return response

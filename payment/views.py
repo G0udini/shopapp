@@ -31,7 +31,7 @@ def payment_process(request):
             email = EmailMessage(subject, message, "admin@shop.com", [order.email])
             html = render_to_string("orders/order/pdf.html", {"order": order})
             out = BytesIO()
-            stylesheets = [weasyprint.CSS(settings.STATIC_ROOT + "css/pdf.css")]
+            stylesheets = [weasyprint.CSS(settings.PDF_ROOT)]
             weasyprint.HTML(string=html).write_pdf(out, stylesheets=stylesheets)
             email.attach(f"order_{order.id}.pdf", out.getvalue(), "applicaation/pdf")
             email.send()
