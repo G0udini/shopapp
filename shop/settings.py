@@ -140,6 +140,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 
+# Default pdf root
+
+PDF_ROOT = os.path.join(BASE_DIR, "main/static/css/pdf.css")
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 

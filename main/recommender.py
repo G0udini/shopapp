@@ -20,7 +20,9 @@ class Recommender:
 
     def suggest_products_for(self, products, max_results=6):
         product_ids = [p.id for p in products]
-        if len(products) == 1:
+        if not product_ids:
+            return
+        elif len(products) == 1:
             suggestions = r.zrange(
                 self.get_product_key(product_ids[0]), 0, -1, desc=True
             )[:max_results]
