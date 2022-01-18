@@ -2,4 +2,6 @@ from .cart import Cart
 
 
 def cart(request):
-    return {"cart": Cart(request)}
+    cart = Cart(request)
+    cart.find_coupon()
+    return {"cart": cart}

@@ -57,9 +57,8 @@ class Cart:
         del self.session[settings.CART_SESSION_ID]
         self.save()
 
-    @property
-    def coupon(self):
-        return Coupon.objects.get(id=self.coupon_id) if self.coupon_id else None
+    def find_coupon(self):
+        self.coupon = Coupon.objects.get(id=self.coupon_id) if self.coupon_id else None
 
     def get_discount(self):
         if self.coupon:

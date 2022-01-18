@@ -34,7 +34,6 @@ class CartDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["coupon_apply_form"] = CouponApplyForm()
-        context["rcommended_products"] = kwargs.get("recommended_products")
         return context
 
     def get(self, request, *args, **kwargs):
