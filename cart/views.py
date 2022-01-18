@@ -20,7 +20,7 @@ class CartAdd(View):
 
 
 class CartDelete(View):
-    def post(request, product_id):
+    def get(self, request, product_id):
         cart = Cart(request)
         product = get_object_or_404(Product, id=product_id)
         cart.remove(product)
@@ -43,13 +43,10 @@ class CartDetail(TemplateView):
             item["update_quantity_form"] = CartAddProductForm(
                 initial={"quantity": item["quantity"], "update": True}
             )
-        print(request.session.get("cart"))
         cart.generete_cart()
-        print(request.session.get("cart"))
-        # r = Recommender()
-        # cart_products = [item["product"] for item in cart]
-        # recommended_products = r.suggest_products_for(cart_products, max_results=4)
-        recommended_products = None
-        # self.context = self.get_context_data(recommended_products=recommended_products)
-        kwargs["recommended_products"] = None
+        r = Recommender()
+        cart_products = [item["product"] for item in cart]
+        kwargs["recommended_products"] = r.suggest_products_for(
+            cart_products, max_results=4
+        )
         return super().get(self, request, *args, **kwargs)
