@@ -18,7 +18,7 @@
                 {% if total_items > 0 %}
                     <p>Your cart:</p>
                     <a href="{% url 'cart:cart_detail' %}">
-                        {% with total=cart.get_total_price items=total_items %}
+                        {% with total=cart.get_total_price_after_discount items=total_items %}
                             {{ items }} item, ${{ total }}
                         {% endwith %}
                     </a>

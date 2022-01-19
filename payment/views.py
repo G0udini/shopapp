@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from django.conf import settings
+from django.views import View
+from django.urls import reverse
 from orders.models import Order
 
 import weasyprint
@@ -9,11 +11,24 @@ import braintree
 from io import BytesIO
 
 
-def payment_process(request):
-    order_id = request.session.get("order_id")
-    order = get_object_or_404(Order, id=order_id)
+class PaymentProcess(View):
+    template_name = "payment/process.html"
 
-    if request.method == "POST":
+    def get_order(self, request, *args, **kwargs):
+        order_id = request.session.get("order_id")
+        return get_object_or_404(Order, id=order_id)
+
+    def get(self, request, *args, **kwargs):
+        order = self.get_order(request)
+        client_token = braintree.ClientToken.generate()
+        context = {
+            "order": order,
+            "client_token": client_token,
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        order = self.get_order(request)
         nonce = request.POST.get("payment_method_nonce", None)
         result = braintree.Transaction.sale(
             {
@@ -35,17 +50,9 @@ def payment_process(request):
             weasyprint.HTML(string=html).write_pdf(out, stylesheets=stylesheets)
             email.attach(f"order_{order.id}.pdf", out.getvalue(), "applicaation/pdf")
             email.send()
-            return redirect("payment:done")
+            return redirect(reverse("payment:done"))
         else:
-            return redirect("payment:canceled")
-
-    else:
-        client_token = braintree.ClientToken.generate()
-        return render(
-            request,
-            "payment/process.html",
-            {"order": order, "client_token": client_token},
-        )
+            return redirect(reverse("payment:canceled"))
 
 
 def payment_done(request):

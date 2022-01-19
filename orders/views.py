@@ -18,6 +18,8 @@ class OrderCreate(View):
     template_name = "orders/order/create.html"
 
     def get(self, request, *args, **kwargs):
+        cart = Cart(request)
+        cart.generete_cart()
         form = OrderCreateForm()
         context = {"form": form}
         return render(request, self.template_name, context)
@@ -25,6 +27,7 @@ class OrderCreate(View):
     def post(self, request, *args, **kwargs):
         cart = Cart(request)
         cart.generete_cart()
+        cart.find_coupon()
         form = OrderCreateForm(request.POST)
         if form.is_valid():
             order = form.save(commit=False)
@@ -47,7 +50,7 @@ class OrderCreate(View):
             request.session["order_id"] = order.id
             return redirect(reverse("payment:process"))
         else:
-            return redirect("orders:order_create")
+            return redirect(reverse("orders:order_create"))
 
 
 class AdminOrderDetail(PermissionRequiredMixin, View):

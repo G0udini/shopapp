@@ -55,6 +55,8 @@ class Cart:
 
     def clear(self):
         del self.session[settings.CART_SESSION_ID]
+        if self.coupon_id:
+            del self.session["coupon_id"]
         self.save()
 
     def find_coupon(self):

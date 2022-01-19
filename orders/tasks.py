@@ -9,5 +9,4 @@ def order_created(order_id):
     subject = f"Order numb. {order.id}"
     message = f"Dear {order.first_name}\n\n You have successfully placed an order.\
         Your order id is {order.id}"
-    mail_sent = send_mail(subject, message, "admin@shop.com", [order.email])
-    return mail_sent
+    return send_mail(subject, message, "admin@shop.com", [order.email])
