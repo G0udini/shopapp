@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.views import View
 from cart.cart import Cart
+from main.recommender import Recommender
 from .models import OrderItem, Order
 from .forms import OrderCreateForm
 from .tasks import order_created
@@ -26,6 +27,7 @@ class OrderCreate(View):
 
     def post(self, request, *args, **kwargs):
         cart = Cart(request)
+        r = Recommender()
         cart.generete_cart()
         cart.find_coupon()
         form = OrderCreateForm(request.POST)
@@ -35,16 +37,20 @@ class OrderCreate(View):
                 order.coupon = cart.coupon
                 order.discount = cart.coupon.discount
             order.save()
-            order_items = [
-                OrderItem(
-                    order=order,
-                    product=item["product"],
-                    price=item["price"],
-                    quantity=item["quantity"],
+            recommend_items = []
+            order_items = []
+            for item in cart:
+                order_items.append(
+                    OrderItem(
+                        order=order,
+                        product=item["product"],
+                        price=item["price"],
+                        quantity=item["quantity"],
+                    )
                 )
-                for item in cart
-            ]
+                recommend_items.append(item["product"])
             OrderItem.objects.bulk_create(order_items)
+            r.products_bought(recommend_items)
             cart.clear()
             order_created.delay(order.id)
             request.session["order_id"] = order.id
