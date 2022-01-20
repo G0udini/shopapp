@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    restart: always
+    command: [sh, -c, "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+    volumes:
+      - ./cart:/usr/src/app/cart
+      - ./coupons:/usr/src/app/coupons
+      - ./main:/usr/src/app/main
+      - ./orders:/usr/src/app/orders
+      - ./shop:/usr/src/app/shop
+      - ./payment:/usr/src/app/payment
+      - ./db.sqlite3:/usr/src/app/db.sqlite3
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  redis:
+    restart: always
+    image: redis:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - redisdata:/data
+
+  rabbitmq:
+    restart: always
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+    
+  celery:
+    build: .
+    restart: always
+    command: celery -A shop worker -B -l INFO
+    volumes:
+      - .:/usr/src/app/
+    env_file:
+      - .env
+    depends_on:
+      - web
+      - redis
+      - rabbitmq
+
+volumes:
+  redisdata:

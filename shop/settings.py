@@ -170,6 +170,20 @@ Configuration.configure(
 
 # Redis settings
 
-REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT = os.getenv("REDIS_PORT")
-REDIS_DB = os.getenv("REDIS_DB")
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = os.getenv("REDIS_PORT", 6379)
+REDIS_DB = os.getenv("REDIS_DB", 0)
+
+# RabbitMQ settings
+
+
+RABBITMQ_PROTOCOL = os.getenv("RABBITMQ_PROTOCOL", "amqp")
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
+RABBITMQ_PORT = os.getenv("RABBITMQ_PORT", 5672)
+RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
+
+
+# Celery settings
+
+CELERY_BROKER_URL = f"{RABBITMQ_PROTOCOL}://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}"
