@@ -3,6 +3,7 @@
 ### Shop appliation where you can buy fake products, have a discount or add items to cart for later purchase
 
 ___
+![](preview.gif)
 
 ## Build & Run
 
